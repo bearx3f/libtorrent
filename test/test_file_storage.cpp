@@ -1224,5 +1224,43 @@ TORRENT_TEST(size_on_disk_explicit_pads)
 	TEST_CHECK(fs.size_on_disk() < fs.total_size());
 }
 
+TORRENT_TEST(test_renamed_files)
+{
+	file_storage fs;
+	fs.set_piece_length(0x8000);
+	fs.add_file("test/0", 0x8000, {}, 0, {}, "11111111111111111111111111111111");
+	fs.add_file("test/1", 0x8000, {}, 0, {}, "22222222222222222222222222222222");
+	fs.add_file("test/2/1", 0x8000, {}, 0, {}, "33333333333333333333333333333333");
+	fs.add_file("test/2/2", 0x8000, {}, 0, {}, "44444444444444444444444444444444");
+
+	renamed_files rf;
+
+	TORRENT_ASSERT(rf.file_path(fs, 0_file, "/root") == "/root/test/0");
+	TORRENT_ASSERT(rf.file_path(fs, 1_file, "/root") == "/root/test/1");
+	TORRENT_ASSERT(rf.file_path(fs, 2_file, "/root") == "/root/test/2/1");
+	TORRENT_ASSERT(rf.file_path(fs, 3_file, "/root") == "/root/test/2/2");
+
+	TORRENT_ASSERT(rf.file_name(fs, 0_file) == "0");
+	TORRENT_ASSERT(rf.file_name(fs, 1_file) == "1");
+	TORRENT_ASSERT(rf.file_name(fs, 2_file) == "1");
+	TORRENT_ASSERT(rf.file_name(fs, 3_file) == "2");
+
+	// no root path
+	rf.rename_file(fs, 0_file, "foobar");
+	TORRENT_ASSERT(rf.file_path(fs, 0_file, "/root") == "/root/foobar");
+	TORRENT_ASSERT(rf.file_name(fs, 0_file) == "foobar");
+
+	// full path
+	rf.rename_file(fs, 1_file, "test/bar");
+	TORRENT_ASSERT(rf.file_path(fs, 1_file, "/root") == "/root/test/bar");
+	TORRENT_ASSERT(rf.file_name(fs, 1_file) == "bar");
+
+	// absolute path
+	rf.rename_file(fs, 2_file, "/foobar/foo");
+	TORRENT_ASSERT(rf.file_path(fs, 2_file, "/root") == "/foobar/foo");
+	TORRENT_ASSERT(rf.file_name(fs, 2_file) == "foo");
+}
+
+
 // TODO: test file attributes
 // TODO: test symlinks
