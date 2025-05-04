@@ -1235,30 +1235,51 @@ TORRENT_TEST(test_renamed_files)
 
 	renamed_files rf;
 
-	TORRENT_ASSERT(rf.file_path(fs, 0_file, "/root") == "/root/test/0");
-	TORRENT_ASSERT(rf.file_path(fs, 1_file, "/root") == "/root/test/1");
-	TORRENT_ASSERT(rf.file_path(fs, 2_file, "/root") == "/root/test/2/1");
-	TORRENT_ASSERT(rf.file_path(fs, 3_file, "/root") == "/root/test/2/2");
+#ifdef TORRENT_WINDOWS
+	TEST_EQUAL(rf.file_path(fs, 0_file, "\\root"), "\\root\\test\\0");
+	TEST_EQUAL(rf.file_path(fs, 1_file, "\\root"), "\\root\\test\\1");
+	TEST_EQUAL(rf.file_path(fs, 2_file, "\\root"), "\\root\\test\\2\\1");
+	TEST_EQUAL(rf.file_path(fs, 3_file, "\\root"), "\\root\\test\\2\\2");
+#else
+	TEST_EQUAL(rf.file_path(fs, 0_file, "/root"), "/root/test/0");
+	TEST_EQUAL(rf.file_path(fs, 1_file, "/root"), "/root/test/1");
+	TEST_EQUAL(rf.file_path(fs, 2_file, "/root"), "/root/test/2/1");
+	TEST_EQUAL(rf.file_path(fs, 3_file, "/root"), "/root/test/2/2");
+#endif
 
-	TORRENT_ASSERT(rf.file_name(fs, 0_file) == "0");
-	TORRENT_ASSERT(rf.file_name(fs, 1_file) == "1");
-	TORRENT_ASSERT(rf.file_name(fs, 2_file) == "1");
-	TORRENT_ASSERT(rf.file_name(fs, 3_file) == "2");
+	TEST_EQUAL(rf.file_name(fs, 0_file), "0");
+	TEST_EQUAL(rf.file_name(fs, 1_file), "1");
+	TEST_EQUAL(rf.file_name(fs, 2_file), "1");
+	TEST_EQUAL(rf.file_name(fs, 3_file), "2");
 
 	// no root path
 	rf.rename_file(fs, 0_file, "foobar");
-	TORRENT_ASSERT(rf.file_path(fs, 0_file, "/root") == "/root/foobar");
-	TORRENT_ASSERT(rf.file_name(fs, 0_file) == "foobar");
+#ifdef TORRENT_WINDOWS
+	TEST_EQUAL(rf.file_path(fs, 0_file, "\\root"), "\\root\\foobar");
+#else
+	TEST_EQUAL(rf.file_path(fs, 0_file, "/root"), "/root/foobar");
+#endif
+	TEST_EQUAL(rf.file_name(fs, 0_file), "foobar");
 
 	// full path
+#ifdef TORRENT_WINDOWS
+	rf.rename_file(fs, 1_file, "test\\bar");
+	TEST_EQUAL(rf.file_path(fs, 1_file, "\\root"), "\\root\\test\\bar");
+#else
 	rf.rename_file(fs, 1_file, "test/bar");
-	TORRENT_ASSERT(rf.file_path(fs, 1_file, "/root") == "/root/test/bar");
-	TORRENT_ASSERT(rf.file_name(fs, 1_file) == "bar");
+	TEST_EQUAL(rf.file_path(fs, 1_file, "/root"), "/root/test/bar");
+#endif
+	TEST_EQUAL(rf.file_name(fs, 1_file), "bar");
 
 	// absolute path
+#ifdef TORRENT_WINDOWS
+	rf.rename_file(fs, 2_file, "\\foobar\\foo");
+	TEST_EQUAL(rf.file_path(fs, 2_file, "\\root"), "\\foobar\\foo");
+#else
 	rf.rename_file(fs, 2_file, "/foobar/foo");
-	TORRENT_ASSERT(rf.file_path(fs, 2_file, "/root") == "/foobar/foo");
-	TORRENT_ASSERT(rf.file_name(fs, 2_file) == "foo");
+	TEST_EQUAL(rf.file_path(fs, 2_file, "/root"), "/foobar/foo");
+#endif
+	TEST_EQUAL(rf.file_name(fs, 2_file), "foo");
 }
 
 
